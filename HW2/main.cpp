@@ -6,7 +6,7 @@
 #include <iostream>
 using namespace std;
 
-#define MINIMUM 1
+#define MINIMUM 1e-5
 #define CHANNEL 256
 #define BIN_SIZE 8
 
@@ -131,11 +131,11 @@ void dump_table(vector<vector<vector<double>>>& train_discrete_table){
 }
 
 vector<vector<vector<double>>> create_discrete_table(vector<datapair>& dp_vec, unsigned char bin_size=BIN_SIZE, double init_num=MINIMUM) {
-    vector<vector<vector<double>>> ret(10, vector<vector<double>>(784, vector<double>(CHANNEL / bin_size, init_num)));
+    vector<vector<vector<double>>> ret(10, vector<vector<double>>(784, vector<double>((unsigned)(CHANNEL / bin_size), init_num)));
 
     for (unsigned i = 0; i < dp_vec.size(); i++) {
         for (unsigned b = 0; b < 784; b++) {
-            ret[dp_vec[i].label][b][dp_vec[i].img[b] / bin_size] += 1;
+            ret[dp_vec[i].label][b][dp_vec[i].img[b] / bin_size] += 1.0;
         }
     }
 
@@ -143,7 +143,7 @@ vector<vector<vector<double>>> create_discrete_table(vector<datapair>& dp_vec, u
 }
 
 vector<vector<vector<double>>> create_continuous_table(vector<datapair>& dp_vec, double init_num=MINIMUM) {
-    vector<vector<vector<double>>> ret(10, vector<vector<double>>(784, vector<double>(CHANNEL, 0)));
+    vector<vector<vector<double>>> ret(10, vector<vector<double>>(784, vector<double>(CHANNEL, 0.5)));
 
     for (unsigned i = 0; i < dp_vec.size(); i++) {
         for (unsigned b = 0; b < 784; b++) {
@@ -169,7 +169,7 @@ vector<vector<vector<double>>> create_continuous_table(vector<datapair>& dp_vec,
             std = sqrt(std / sum);
 
             for (unsigned val = 0; val < ret[i][b].size(); val++) {
-                ret[i][b][val] = (std == 0 ? (val == mean ? 0.745 : 0.001) : gaussian(val, mean, std));
+                ret[i][b][val] = gaussian(val, mean, std);
             }
         }
     }
@@ -183,6 +183,7 @@ vector<double> count_discrete_posterior(vector<vector<vector<double>>>& train_di
 
     double total = 0;
     double p_bi, p_bni, num_bi, num_bni;
+    double postsum = 0;
 
     for (int i = 0; i < category_nums.size(); i++) {
         total += category_nums[i];
@@ -191,23 +192,16 @@ vector<double> count_discrete_posterior(vector<vector<vector<double>>>& train_di
     for (unsigned i = 0; i < train_discrete_table.size(); i++) {
         p_bi = p_bni = 0;
         for (unsigned bin = 0; bin < test_bin.size(); bin++) {
-            num_bi = num_bni = 0.0;
-            for (unsigned category = 0; category < train_discrete_table.size(); category++) {
-                if (i == category) {
-                    num_bi = train_discrete_table[category][bin][test_bin[bin]];
-                } else {
-                    num_bni += train_discrete_table[category][bin][test_bin[bin]];
-                }
-            }
-            p_bi += log(num_bi / (category_nums[i] + MINIMUM));
-            p_bni += log(num_bni / ((total - category_nums[i]) + (train_discrete_table.size() - 1) * MINIMUM));
+            num_bi = train_discrete_table[i][bin][test_bin[bin]];
+            p_bi += log(num_bi / (category_nums[i]));
         }
         p_bi += log(category_nums[i] / total);
-        p_bni += log((total - category_nums[i]) / total);
-        // cout << "p_bi = " << p_bi << " p_bni = " << p_bni << endl;
-        prediction[i] = p_bi / (p_bi + p_bni);
-        // prediction[i] = p_bi - log(exp(p_bi) + exp(p_bni));
+        prediction[i] = p_bi;
+        postsum += p_bi;
     }
+
+    for (unsigned i = 0; i < prediction.size(); i++)
+        prediction[i] /= postsum;
 
     return prediction;
 }
@@ -216,31 +210,26 @@ vector<double> count_continuous_posterior(vector<vector<vector<double>>>& train_
     vector<double> prediction(10, 0.0);
 
     double total = 0;
-    double p_bi, p_bni, num_bi, num_bni;
+    double p_bi, num_bi;
+    double postsum = 0;
 
     for (int i = 0; i < category_nums.size(); i++) {
         total += category_nums[i];
     }
     
     for (unsigned i = 0; i < train_continuous_table.size(); i++) {
-        p_bi = p_bni = 0;
+        p_bi = 0;
         for (unsigned bin = 0; bin < train_continuous_table[i].size(); bin++) {
-            num_bi = num_bni = 0.0;
-            for (unsigned category = 0; category < train_continuous_table.size(); category++) {
-                if (i == category) {
-                    num_bi = train_continuous_table[category][bin][test_img.img[bin]];
-                } else {
-                    num_bni += train_continuous_table[category][bin][test_img.img[bin]];
-                }
-            }
+            num_bi = train_continuous_table[i][bin][test_img.img[bin]];
             p_bi += log(num_bi);
-            p_bni += log(num_bni);
         }
         p_bi += log(category_nums[i] / total);
-        p_bni += log((total - category_nums[i]) / total);
-        prediction[i] = p_bi / (p_bi + p_bni);
-        // prediction[i] = p_bi - log(exp(p_bi) + exp(p_bni));
+        prediction[i] = p_bi;
+        postsum += p_bi;
     }
+
+    for (unsigned i = 0; i < prediction.size(); i++)
+        prediction[i] /= postsum;
 
     return prediction;
 }
@@ -270,11 +259,6 @@ int main(int argc, char * argv[]) {
     double init_val;
     cout << "input option (0 for discrete mode, 1 for continuous mode) : ";
     cin >> mode;
-    // if (mode == 0) {
-    //     cout << "input init value : ";
-    //     cin >> init_val;
-    //     init_val = init_val < 0 ? 1e-10 : init_val;
-    // }
 
     vector<datapair> train_data =  read_datapairs(fname_train_img, fname_train_label);
     vector<datapair> test_data =  read_datapairs(fname_test_img, fname_test_label);
@@ -282,13 +266,14 @@ int main(int argc, char * argv[]) {
     vector<unsigned> category_nums = count_category_num(train_data);
     vector<vector<vector<double>>> train_table;
     if (mode == 0) {
-        train_table = create_discrete_table(train_data, MINIMUM);
+        train_table = create_discrete_table(train_data, 8, MINIMUM);
     } 
 
     if (mode == 1) {
         train_table = create_continuous_table(train_data, MINIMUM);
     }
-    // dump_table(train_table);
+
+    dump_table(train_table);
 
     vector<double> pred;
     double error_rate = 0.0;
@@ -300,8 +285,8 @@ int main(int argc, char * argv[]) {
         if (mode == 1) {
             // continuous
             pred = count_continuous_posterior(train_table, category_nums, test_data[i]);
-            error_rate += judge_pred(pred, test_data[i].label);
         }
+        error_rate += judge_pred(pred, test_data[i].label);
     }
     error_rate /= test_data.size();
 
