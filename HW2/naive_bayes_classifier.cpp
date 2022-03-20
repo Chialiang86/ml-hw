@@ -14,7 +14,7 @@ typedef struct _datapair {
     unsigned char row;
     unsigned char col;
     unsigned char label;
-    unsigned char *img = NULL;
+    unsigned char *img;
 } datapair;
 
 unsigned byte2unsigned(char* carr) {
@@ -118,7 +118,7 @@ vector<unsigned char> count_bins(datapair &dp, unsigned char bin_size=BIN_SIZE) 
     return bins;
 }
 
-void dump_model(vector<vector<vector<double>>>& train_discrete_model){
+void dump_model(vector<vector<vector<double> > >& train_discrete_model){
     for (long unsigned i = 0; i < train_discrete_model.size(); i++) {
         for (long unsigned j = 0; j < train_discrete_model[i].size(); j++) {
             for (long unsigned k = 0; k < train_discrete_model[i][j].size(); k++) {
@@ -130,8 +130,8 @@ void dump_model(vector<vector<vector<double>>>& train_discrete_model){
     }
 }
 
-vector<vector<vector<double>>> create_discrete_model(vector<datapair>& dp_vec, unsigned char bin_size=BIN_SIZE, double init_num=MINIMUM) {
-    vector<vector<vector<double>>> ret(10, vector<vector<double>>(784, vector<double>((unsigned)(CHANNEL / bin_size), init_num)));
+vector<vector<vector<double> > > create_discrete_model(vector<datapair>& dp_vec, unsigned char bin_size=BIN_SIZE, double init_num=MINIMUM) {
+    vector<vector<vector<double> > > ret(10, vector<vector<double> >(784, vector<double>((unsigned)(CHANNEL / bin_size), init_num)));
 
     for (long unsigned i = 0; i < dp_vec.size(); i++) {
         for (unsigned b = 0; b < 784; b++) {
@@ -142,8 +142,8 @@ vector<vector<vector<double>>> create_discrete_model(vector<datapair>& dp_vec, u
     return ret;
 }
 
-vector<vector<vector<double>>> create_continuous_model(vector<datapair>& dp_vec, double init_num=MINIMUM) {
-    vector<vector<vector<double>>> ret(10, vector<vector<double>>(784, vector<double>(CHANNEL, 0.5)));
+vector<vector<vector<double> > > create_continuous_model(vector<datapair>& dp_vec, double init_num=MINIMUM) {
+    vector<vector<vector<double> > > ret(10, vector<vector<double> >(784, vector<double>(CHANNEL, 0.5)));
 
     for (long unsigned i = 0; i < dp_vec.size(); i++) {
         for (unsigned b = 0; b < 784; b++) {
@@ -177,7 +177,7 @@ vector<vector<vector<double>>> create_continuous_model(vector<datapair>& dp_vec,
     return ret;
 }
 
-vector<double> count_discrete_posterior(vector<vector<vector<double>>>& train_discrete_model, vector<unsigned> category_nums, datapair test_img, unsigned char bin_size) {
+vector<double> count_discrete_posterior(vector<vector<vector<double> > >& train_discrete_model, vector<unsigned> category_nums, datapair test_img, unsigned char bin_size) {
     vector<double> prediction(10, 0.0);
     vector<unsigned char> test_bin = count_bins(test_img, bin_size);
 
@@ -206,7 +206,7 @@ vector<double> count_discrete_posterior(vector<vector<vector<double>>>& train_di
     return prediction;
 }
 
-vector<double> count_continuous_posterior(vector<vector<vector<double>>>& train_continuous_model, vector<unsigned> category_nums, datapair test_img) {
+vector<double> count_continuous_posterior(vector<vector<vector<double> > >& train_continuous_model, vector<unsigned> category_nums, datapair test_img) {
     vector<double> prediction(10, 0.0);
 
     double total = 0;
@@ -263,7 +263,7 @@ int main(int argc, char * argv[]) {
     vector<datapair> test_data =  read_datapairs(fname_test_img, fname_test_label);
 
     vector<unsigned> category_nums = count_category_num(train_data);
-    vector<vector<vector<double>>> train_model;
+    vector<vector<vector<double> > > train_model;
     if (mode == 0) {
         train_model = create_discrete_model(train_data, 8, MINIMUM);
     } 

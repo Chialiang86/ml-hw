@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "__locale": "cpp",
+        "random": "cpp",
+        "cmath": "cpp",
+        "ostream": "cpp"
+    }
+}

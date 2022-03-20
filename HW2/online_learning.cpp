@@ -9,7 +9,7 @@ using namespace std;
 typedef struct _binomial_info {
     double alpha;
     double beta;
-    double p;
+    double likelihood;
 } binomial_info;
 
 double factorial(double n) {
@@ -20,19 +20,19 @@ double factorial(double n) {
     }
 }
 
-double count_likelihood(double p, double alpha, double beta) {
-    return factorial(alpha + beta) / (factorial(alpha) * factorial(beta)) * pow(0.5, alpha) * pow(0.5, beta);
+double count_likelihood(double alpha, double beta, double p) {
+    return factorial(alpha + beta) / (factorial(alpha) * factorial(beta)) * pow(p, alpha) * pow(1 - p, beta);
 }
 
 void online_learning(binomial_info& info, string outcome) {
-    unsigned long cnt_0 = 0, cnt_1;
+    double cnt_0, cnt_1 = 0;
     for (unsigned long i = 0; i < outcome.size(); i++) 
         if (outcome[i] == '1')
-            cnt_0++;
-    cnt_1 = outcome.size() - cnt_0;
-    info.alpha += cnt_0;
-    info.beta += cnt_1;
-    info.p = count_likelihood(info.p, info.alpha, info.beta);
+            cnt_1 += 1.0;
+    cnt_0 = outcome.size() - cnt_1;
+    info.likelihood = count_likelihood(cnt_1, cnt_0, cnt_1 / (cnt_0 + cnt_1));
+    info.alpha += cnt_1;
+    info.beta += cnt_0;
 }
 
 int main(int argc, char * argv[]) {
@@ -44,11 +44,9 @@ int main(int argc, char * argv[]) {
     unsigned int case_cnt = 0;
     string line;
 
-
     cin >> alpha >> beta;
     info.alpha = alpha;
     info.beta = beta;
-    info.p = 0.5;
     while ((fin >> line)) {
         case_cnt++;
         alpha = info.alpha;
@@ -56,7 +54,7 @@ int main(int argc, char * argv[]) {
         online_learning(info, line);
 
         cout << "case " << case_cnt << ": " << line << endl;
-        cout << "Likelihood: " << info.p << endl;
+        cout << "Likelihood: " << info.likelihood << endl;
         cout << "Beta prior:  a = " << alpha << " b = " << beta << endl;
         cout << "Beta posterior:  a = " << info.alpha << " b = " << info.beta << endl;
         cout << endl;

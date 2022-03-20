@@ -1,0 +1,55 @@
+case 1: 0101010101001011010101
+Likelihood: 0.168188
+Beta prior:  a = 10 b = 0
+Beta posterior:  a = 21 b = 11
+
+case 2: 0110101
+Likelihood: 0.293755
+Beta prior:  a = 21 b = 11
+Beta posterior:  a = 25 b = 14
+
+case 3: 010110101101
+Likelihood: 0.228605
+Beta prior:  a = 25 b = 14
+Beta posterior:  a = 32 b = 19
+
+case 4: 0101101011101011010
+Likelihood: 0.182869
+Beta prior:  a = 32 b = 19
+Beta posterior:  a = 43 b = 27
+
+case 5: 111101100011110
+Likelihood: 0.214307
+Beta prior:  a = 43 b = 27
+Beta posterior:  a = 53 b = 32
+
+case 6: 101110111000110
+Likelihood: 0.206598
+Beta prior:  a = 53 b = 32
+Beta posterior:  a = 62 b = 38
+
+case 7: 1010010111
+Likelihood: 0.250823
+Beta prior:  a = 62 b = 38
+Beta posterior:  a = 68 b = 42
+
+case 8: 11101110110
+Likelihood: 0.261968
+Beta prior:  a = 68 b = 42
+Beta posterior:  a = 76 b = 45
+
+case 9: 01000111101
+Likelihood: 0.236091
+Beta prior:  a = 76 b = 45
+Beta posterior:  a = 82 b = 50
+
+case 10: 110100111
+Likelihood: 0.273129
+Beta prior:  a = 82 b = 50
+Beta posterior:  a = 88 b = 53
+
+case 11: 01101010111
+Likelihood: 0.243849
+Beta prior:  a = 88 b = 53
+Beta posterior:  a = 95 b = 57
+
