@@ -30,7 +30,7 @@ inline double gaussian(double val, double mean, double std) {
     return exp(-0.5 * pow((val - mean) / std, 2)) / (std * sqrt(2 * M_PI)); 
 }
 
-vector<datapair> read_datapairs(const string img_file, const string label_file) {
+vector<datapair> read_datapairs(const string& img_file, const string& label_file) {
     vector<datapair> ret;
     datapair * tmp_data = NULL;
 
@@ -91,8 +91,8 @@ vector<datapair> read_datapairs(const string img_file, const string label_file) 
     return ret;
 }
 
-void display(datapair dp) {
-    cout << (unsigned int)dp.label << ":" << endl;
+void display(datapair& dp, unsigned char pred) {
+    cout << (unsigned int)pred << ":" << endl;
     for (int i = 0; i < dp.row; i++) {
         for (int j = 0; j < dp.col; j++) {
             cout << ((unsigned int)dp.img[i * dp.row + j] < 128 ?  0 : 1) << " ";
@@ -143,7 +143,7 @@ vector<vector<vector<double> > > create_discrete_model(vector<datapair>& dp_vec,
 }
 
 vector<vector<vector<double> > > create_continuous_model(vector<datapair>& dp_vec, double init_num=MINIMUM) {
-    vector<vector<vector<double> > > ret(10, vector<vector<double> >(784, vector<double>(CHANNEL, 0.5)));
+    vector<vector<vector<double> > > ret(10, vector<vector<double> >(784, vector<double>(CHANNEL, init_num)));
 
     for (long unsigned i = 0; i < dp_vec.size(); i++) {
         for (unsigned b = 0; b < 784; b++) {
@@ -177,12 +177,12 @@ vector<vector<vector<double> > > create_continuous_model(vector<datapair>& dp_ve
     return ret;
 }
 
-vector<double> count_discrete_posterior(vector<vector<vector<double> > >& train_discrete_model, vector<unsigned> category_nums, datapair test_img, unsigned char bin_size) {
+vector<double> count_discrete_posterior(vector<vector<vector<double> > >& train_discrete_model, vector<unsigned>& category_nums, datapair& test_img, unsigned char bin_size) {
     vector<double> prediction(10, 0.0);
     vector<unsigned char> test_bin = count_bins(test_img, bin_size);
 
     double total = 0;
-    double p_bi, p_bni, num_bi;
+    double p_bi, num_bi;
     double postsum = 0;
 
     for (long unsigned i = 0; i < category_nums.size(); i++) {
@@ -190,7 +190,7 @@ vector<double> count_discrete_posterior(vector<vector<vector<double> > >& train_
     }
     
     for (long unsigned i = 0; i < train_discrete_model.size(); i++) {
-        p_bi = p_bni = 0;
+        p_bi = 0;
         for (long unsigned bin = 0; bin < test_bin.size(); bin++) {
             num_bi = train_discrete_model[i][bin][test_bin[bin]];
             p_bi += log(num_bi / (category_nums[i]));
@@ -206,7 +206,7 @@ vector<double> count_discrete_posterior(vector<vector<vector<double> > >& train_
     return prediction;
 }
 
-vector<double> count_continuous_posterior(vector<vector<vector<double> > >& train_continuous_model, vector<unsigned> category_nums, datapair test_img) {
+vector<double> count_continuous_posterior(vector<vector<vector<double> > >& train_continuous_model, vector<unsigned>& category_nums, datapair& test_img) {
     vector<double> prediction(10, 0.0);
 
     double total = 0;
@@ -233,7 +233,8 @@ vector<double> count_continuous_posterior(vector<vector<vector<double> > >& trai
 
     return prediction;
 }
-int judge_pred(vector<double> pred, unsigned char ans) {
+
+void add_pred(vector<double>& pred, vector<unsigned char>& pred_res, unsigned char ans) {
     cout << "Posterior (probabilities)" << endl;
 
     double min = 10e10;
@@ -246,7 +247,25 @@ int judge_pred(vector<double> pred, unsigned char ans) {
         }
     }
     cout << "Prediction: " << (unsigned)pre << ", Ans: " << (unsigned)ans << endl << endl;
-    return pre == ans ? 0 : 1;
+    pred_res.push_back(pre);
+}
+
+void judge_pred(vector<unsigned char>& pred_res, vector<datapair>& ans) {
+    if (pred_res.size() != ans.size()) {
+        cout << "predict size is different from answer size " << pred_res.size() << " and " << ans.size() << endl;
+        return;
+    }
+    double error_rate = 0.0;
+    for (long unsigned i = 0; i < pred_res.size(); i++) {
+        error_rate += pred_res[i] == ans[i].label ? 0.0 : 1.0;
+    }
+    error_rate /= (double)pred_res.size();
+    
+    cout << "Imagination of numbers in Bayesian classifier: " << endl << endl;
+    for (unsigned long i = 0; i < ans.size() ; i++) 
+        display(ans[i], pred_res[i]);
+
+    cout << "Error rate: " << error_rate << endl;
 }
 
 int main(int argc, char * argv[]) {
@@ -265,33 +284,29 @@ int main(int argc, char * argv[]) {
     vector<unsigned> category_nums = count_category_num(train_data);
     vector<vector<vector<double> > > train_model;
     if (mode == 0) {
-        train_model = create_discrete_model(train_data, 8, MINIMUM);
+        train_model = create_discrete_model(train_data, 8, 1e-5);
     } 
 
     if (mode == 1) {
-        train_model = create_continuous_model(train_data, MINIMUM);
+        train_model = create_continuous_model(train_data, 1);
     }
 
     vector<double> pred;
-    double error_rate = 0.0;
+    vector<unsigned char> pred_res;
     for (long unsigned i = 0; i < test_data.size() ; i++) {
         if (mode == 0) {
             // discrete
             pred = count_discrete_posterior(train_model, category_nums, test_data[i], BIN_SIZE);
+            add_pred(pred, pred_res, test_data[i].label);
         } 
         if (mode == 1) {
             // continuous
             pred = count_continuous_posterior(train_model, category_nums, test_data[i]);
+            add_pred(pred, pred_res, test_data[i].label);
         }
-        error_rate += judge_pred(pred, test_data[i].label);
     }
-    error_rate /= test_data.size();
 
-    cout << "Imagination of numbers in Bayesian classifier: " << endl;
-    for (unsigned long i = 0; i < test_data.size() ; i++) 
-        display(test_data[i]);
-
-    cout << "Error rate: " << error_rate << endl;
+    judge_pred(pred_res, test_data);
 
     return 0;
 

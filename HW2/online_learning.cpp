@@ -42,11 +42,14 @@ int main(int argc, char * argv[]) {
 
     unsigned int alpha, beta;
     unsigned int case_cnt = 0;
-    string line;
+    cout << "parameter a for the initial beta prior :"; 
+    cin >> alpha ;
+    cout << "parameter b for the initial beta prior :"; 
+    cin >>  beta;
 
-    cin >> alpha >> beta;
     info.alpha = alpha;
     info.beta = beta;
+    string line;
     while ((fin >> line)) {
         case_cnt++;
         alpha = info.alpha;
