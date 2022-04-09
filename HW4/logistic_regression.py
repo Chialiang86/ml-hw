@@ -28,7 +28,7 @@ def gradient_descent(w, phi, y, lr=1e-2, thresh=0.05):
     grad = 1e10
 
     cnt = 0
-    while abs(np.sqrt(np.sum(grad ** 2))) > thresh or cnt < 10000:
+    while abs(np.sqrt(np.sum(grad ** 2))) > thresh and cnt < 100000:
         cnt += 1
         gradient = phi.T @ (sigmoid(phi, w) - y)
         grad = lr * gradient
@@ -51,7 +51,7 @@ def newtons_method(w, phi, y, lr=1e-2, thresh=0.05):
         return gradient_descent(w, phi, y)
 
     cnt = 0
-    while abs(np.sqrt(np.sum(grad ** 2))) > thresh or cnt < 10000:
+    while abs(np.sqrt(np.sum(grad ** 2))) > thresh and cnt < 100000:
         cnt += 1
         gradient = phi.T @ (sigmoid(phi, w) - y)
         grad = hessian_inv @ gradient
