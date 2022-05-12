@@ -17,6 +17,8 @@ def task1(X_train, Y_train, X_test, Y_test):
                c_default * 10, c_default * 100, c_default * 1000, c_default * 10000, c_default / 100000]
     acc_map = np.zeros((3, len(c_list)))
 
+    acc_best = {'acc':0, 'kernel': '', 'c': 0}
+
     for i, c in enumerate(c_list):
         # -s 0 (C-SVC) -t 0 (linear) -c 10 (num classes) 
         kernel_type = 'linear'
@@ -26,6 +28,8 @@ def task1(X_train, Y_train, X_test, Y_test):
         ACC, MSE, SCC = evaluations(Y_test, p_label)
         acc_map[0, i] = ACC
         f_out.write('[kernel type = {}, c = {}, ACC={}, MSE={}, SCC={}]\n'.format(kernel_type, c, ACC, MSE, SCC))
+        if ACC > acc_best['acc']:
+            acc_best = {'acc':ACC, 'kernel': 'linear', 'c': c}
         
         # -s 0 (C-SVC) -t 1 (polynomial) -c 10 (num classes) 
         kernel_type = 'polynomial'
@@ -35,6 +39,8 @@ def task1(X_train, Y_train, X_test, Y_test):
         ACC, MSE, SCC = evaluations(Y_test, p_label)
         f_out.write('[kernel type = {}, c = {}, ACC={}, MSE={}, SCC={}]\n'.format(kernel_type, c, ACC, MSE, SCC))
         acc_map[1, i] = ACC
+        if ACC > acc_best['acc']:
+            acc_best = {'acc':ACC, 'kernel': 'polynomial', 'c': c}
         
         # -s 0 (C-SVC) -t 2 (RBF) -c 10 (num classes) 
         kernel_type = 'RBF'
@@ -44,6 +50,10 @@ def task1(X_train, Y_train, X_test, Y_test):
         ACC, MSE, SCC = evaluations(Y_test, p_label)
         f_out.write('[kernel type = {}, c = {}, ACC={}, MSE={}, SCC={}]\n'.format(kernel_type, c, ACC, MSE, SCC))
         acc_map[2, i] = ACC
+        if ACC > acc_best['acc']:
+            acc_best = {'acc':ACC, 'kernel': 'RBF', 'c': c}
+
+    f_out.write(f'best result : {acc_best}\n')
     
     fig, ax = plt.subplots()
     fig.set_figheight(8)
@@ -124,6 +134,9 @@ def task2(X_train, Y_train, X_test, Y_test):
 
     polynomial_acc_map = np.zeros((len(degree_list), len(gamma_list), len(coef_list)))
     c = 1
+
+    acc_best = {'acc': 0, 'c': c, 'degree': 0, 'gamma': 0, 'coef0': 0}
+
     # -s 0 (C-SVC) -t 1 (polynomial) -c 10 (num classes) 
     for i, degree in enumerate(degree_list):
         for j, gamma in enumerate(gamma_list):
@@ -135,6 +148,8 @@ def task2(X_train, Y_train, X_test, Y_test):
                 ACC, MSE, SCC = evaluations(Y_test, p_label)
                 f_out.write(f'[param : {param}, ACC = {ACC}, MSE = {MSE}, SCC = {SCC}]\n')
                 polynomial_acc_map[i, j, k] = np.round(100 * ACC) / 100
+                if polynomial_acc_map[i, j, k] > acc_best['acc']:
+                    acc_best = {'acc': polynomial_acc_map[i, j, k], 'c': c, 'degree': degree, 'gamma': gamma, 'coef0': coef}
     
     f_out.write('\nPolynomial Based Kernel Analysis\n')
     for i in range(polynomial_acc_map.shape[0]):
@@ -144,6 +159,7 @@ def task2(X_train, Y_train, X_test, Y_test):
                 f_out.write(f'{polynomial_acc_map[i, j, k]} ')
             f_out.write('\n')
     f_out.write('\n')
+    f_out.write(f'best result in polynomial kernel : {acc_best}\n')
     plot_res(polynomial_acc_map, 'polynomial', degree_list, gamma_list, coef_list, c)
 
     # for RBF exp(-gamma*|u-v|^2)
@@ -152,6 +168,8 @@ def task2(X_train, Y_train, X_test, Y_test):
     c_list = [c_default / 100000, c_default / 10000, c_default / 1000, c_default / 100, c_default / 10, c_default,
                c_default * 10, c_default * 100, c_default * 1000, c_default * 10000, c_default / 100000]
     RBF_acc_map = np.zeros((len(gamma_list), len(c_list)))
+
+    acc_best = {'acc': 0, 'c': c, 'gamma': 0}
 
     # -s 0 (C-SVC) -t 2 (RBF) -c 10 (num classes) 
     for i, gamma in enumerate(gamma_list):
@@ -163,6 +181,8 @@ def task2(X_train, Y_train, X_test, Y_test):
             ACC, MSE, SCC = evaluations(Y_test, p_label)
             f_out.write(f'[param : {param}, ACC = {ACC}, MSE = {MSE}, SCC = {SCC}]\n')
             RBF_acc_map[i, j] = np.round(100 * ACC) / 100
+            if RBF_acc_map[i, j] > acc_best['acc']:
+                acc_best = {'acc': RBF_acc_map[i, j], 'c': c, 'gamma': gamma}
 
     f_out.write('\nRBF Based Kernel Analysis\n')
     for i in range(RBF_acc_map.shape[0]):
@@ -170,7 +190,7 @@ def task2(X_train, Y_train, X_test, Y_test):
             f_out.write(f'{RBF_acc_map[i, j]} ')
         f_out.write('\n')
     f_out.write('\n')
-    
+    f_out.write(f'best result in RBF kernel : {acc_best}\n')
     # plot result to heatmap
     plot_res(RBF_acc_map, 'RBF', gamma_list, c_list, None, c)
 
@@ -239,6 +259,8 @@ def task3(X_train, Y_train, X_test, Y_test):
     func_list = [kernel_linear, kernel_RBF, kernel_linear_plus_RBF]
     acc_map = np.zeros((len(func_list), len(gamma_list)))
 
+    acc_best = {'acc': 0, 'function': None ,'gamma': 0}
+
     # precompute kernel
 
     f_out = open('task2.3_out.txt', 'w')
@@ -253,6 +275,10 @@ def task3(X_train, Y_train, X_test, Y_test):
             ACC, MSE, SCC = evaluations(Y_test, p_label)
             f_out.write(f'[kernel : {func}, gamma : {gamma}, ACC = {ACC}, MSE = {MSE}, SCC = {SCC}]\n')
             acc_map[i, j] = np.round(100 * ACC) / 100
+            if acc_map[i, j] > acc_best['acc']:
+                acc_best = {'acc': acc_map[i, j], 'function': func ,'gamma': gamma}
+
+    f_out.write(f'best result in task 3 : {acc_best}\n')
 
     fig, ax = plt.subplots()
     fig.set_figheight(8)
