@@ -1,3 +1,4 @@
+from cProfile import label
 from turtle import distance
 import matplotlib.pyplot as plt
 import numpy as np
@@ -9,40 +10,70 @@ def task1(X_train, Y_train, X_test, Y_test):
     s_dict = {'C-SVC': 0, 'nu-SVC':1, 'one-class SVM':2, 'epsilon-SVR':3, 'nu-SVR':4}
     t_dict = {'linear': 0, 'polynomial':1, 'RBF':2, 'sigmoid':3}
     
-    f_out = open('task2.1_out.txt', 'w')
-
-    # -s 0 (C-SVC) -t 0 (linear) -c 10 (num classes) 
-    kernel_type = 'linear'
-    param = '-s {} -t {} -c {}'.format(s_dict['C-SVC'], t_dict[kernel_type], 10)
-    m = svm_train(Y_train, X_train, param)
-    p_label, p_acc, p_val = svm_predict(Y_test, X_test, m)
-    ACC, MSE, SCC = evaluations(Y_test, p_label)
-    f_out.write('-------------------------------------------------------\n')
-    f_out.write('[kernel type = {}, ACC={}, MSE={}, SCC={}]\n'.format(kernel_type, ACC, MSE, SCC))
+    f_out = open('task2.1_out.txt', 'w')    
     
-    # -s 0 (C-SVC) -t 1 (polynomial) -c 10 (num classes) 
-    kernel_type = 'polynomial'
-    param = '-s {} -t {} -c {}'.format(s_dict['C-SVC'], t_dict[kernel_type], 10)
-    m = svm_train(Y_train, X_train, param)
-    p_label, p_acc, p_val = svm_predict(Y_test, X_test, m)
-    ACC, MSE, SCC = evaluations(Y_test, p_label)
-    f_out.write('-------------------------------------------------------\n')
-    f_out.write('[kernel type = {}, ACC={}, MSE={}, SCC={}]\n'.format(kernel_type, ACC, MSE, SCC))
-    
-    # -s 0 (C-SVC) -t 2 (RBF) -c 10 (num classes) 
-    kernel_type = 'RBF'
-    param = '-s {} -t {} -c {}'.format(s_dict['C-SVC'], t_dict[kernel_type], 10)
-    m = svm_train(Y_train, X_train, param)
-    p_label, p_acc, p_val = svm_predict(Y_test, X_test, m)
-    ACC, MSE, SCC = evaluations(Y_test, p_label)
-    f_out.write('-------------------------------------------------------\n')
-    f_out.write('[kernel type = {}, ACC={}, MSE={}, SCC={}]\n'.format(kernel_type, ACC, MSE, SCC))
+    c_default = 1
+    c_list = [c_default / 100000, c_default / 10000, c_default / 1000, c_default / 100, c_default / 10, c_default,
+               c_default * 10, c_default * 100, c_default * 1000, c_default * 10000, c_default / 100000]
+    acc_map = np.zeros((3, len(c_list)))
 
-def plot_res(data, title, x_label, y_label, z_label):
+    for i, c in enumerate(c_list):
+        # -s 0 (C-SVC) -t 0 (linear) -c 10 (num classes) 
+        kernel_type = 'linear'
+        param = '-s {} -t {} -c {}'.format(s_dict['C-SVC'], t_dict[kernel_type], c)
+        m = svm_train(Y_train, X_train, param)
+        p_label, p_acc, p_val = svm_predict(Y_test, X_test, m)
+        ACC, MSE, SCC = evaluations(Y_test, p_label)
+        acc_map[0, i] = ACC
+        f_out.write('[kernel type = {}, c = {}, ACC={}, MSE={}, SCC={}]\n'.format(kernel_type, c, ACC, MSE, SCC))
+        
+        # -s 0 (C-SVC) -t 1 (polynomial) -c 10 (num classes) 
+        kernel_type = 'polynomial'
+        param = '-s {} -t {} -c {}'.format(s_dict['C-SVC'], t_dict[kernel_type], c)
+        m = svm_train(Y_train, X_train, param)
+        p_label, p_acc, p_val = svm_predict(Y_test, X_test, m)
+        ACC, MSE, SCC = evaluations(Y_test, p_label)
+        f_out.write('[kernel type = {}, c = {}, ACC={}, MSE={}, SCC={}]\n'.format(kernel_type, c, ACC, MSE, SCC))
+        acc_map[1, i] = ACC
+        
+        # -s 0 (C-SVC) -t 2 (RBF) -c 10 (num classes) 
+        kernel_type = 'RBF'
+        param = '-s {} -t {} -c {}'.format(s_dict['C-SVC'], t_dict[kernel_type], c)
+        m = svm_train(Y_train, X_train, param)
+        p_label, p_acc, p_val = svm_predict(Y_test, X_test, m)
+        ACC, MSE, SCC = evaluations(Y_test, p_label)
+        f_out.write('[kernel type = {}, c = {}, ACC={}, MSE={}, SCC={}]\n'.format(kernel_type, c, ACC, MSE, SCC))
+        acc_map[2, i] = ACC
+    
+    fig, ax = plt.subplots()
+    fig.set_figheight(8)
+    fig.set_figwidth(15)
+
+    x_axis = np.arange(acc_map.shape[1])
+    plt.title('Task2.1 result (accuracy in %)')
+    plt.xticks(x_axis, c_list)
+    plt.setp(ax.get_xticklabels(), rotation=45, ha="right", rotation_mode="anchor")
+
+    bar_linear          = plt.bar(x_axis - 0.25, acc_map[0], 0.25, label = 'linear')
+    bar_RBF             = plt.bar(x_axis - 0., acc_map[1], 0.25, label = 'polynomial')
+    bar_linear_plus_RBF = plt.bar(x_axis + 0.25, acc_map[2], 0.25, label = 'RBF')
+    for rect in bar_linear + bar_RBF + bar_linear_plus_RBF:
+        height = rect.get_height()
+        plt.text(rect.get_x() + rect.get_width() / 2.0, height, f'{height:.1f}', ha='center', va='bottom', fontsize='x-small')
+
+    plt.xlabel('c')
+    plt.ylim(0, 120)
+    plt.ylabel('acc')
+    plt.legend()
+
+    plt.savefig('task2.1_three_kernel.png')
+    plt.show()
+
+def plot_res(data, title, x_label, y_label, z_label, c):
     if len(data.shape) == 3:
         for i in range(data.shape[0]):
             fig, ax = plt.subplots(figsize=(10, 10))
-            plt.title(f'{title} : degree = {x_label[i]}, c = 10 (accuracy in %)')
+            plt.title(f'{title} : degree = {x_label[i]}, c = {c} (accuracy in %)')
             plt.imshow(data[i].T)
             plt.xlabel('gamma')
             plt.ylabel('coef')
@@ -56,7 +87,7 @@ def plot_res(data, title, x_label, y_label, z_label):
             for j in range(len(y_label)):
                 for k in range(len(z_label)):
                     text = plt.text(j, k, f'{data[i, j, k]}%', ha='center', va='center', color='w')
-            plt.savefig(f'task2.2_{title}_{x_label[i]}.png')
+            plt.savefig(f'task2.2_{title}_{c}_{x_label[i]}.png')
         
     elif len(data.shape) == 2:
         fig, ax = plt.subplots(figsize=(10, 10))
@@ -89,15 +120,16 @@ def task2(X_train, Y_train, X_test, Y_test):
     gamma_list = [gamma_default / 100000, gamma_default / 10000, gamma_default / 1000, gamma_default / 100, gamma_default / 10, gamma_default, 
                   gamma_default * 10, gamma_default * 100, gamma_default * 1000, gamma_default * 10000, gamma_default * 100000]
     coef_list = [coef_default - 1000, coef_default - 100, coef_default - 10, coef_default - 1, coef_default - 0.1, coef_default,
-                 coef_default + 0.1, coef_default + 1, coef_default + 10, coef_default + 100, coef_default + 100]
-    polynomial_acc_map = np.zeros((len(degree_list), len(gamma_list), len(coef_list)))
+                 coef_default + 0.1, coef_default + 1, coef_default + 10, coef_default + 100, coef_default + 1000]
 
+    polynomial_acc_map = np.zeros((len(degree_list), len(gamma_list), len(coef_list)))
+    c = 1
     # -s 0 (C-SVC) -t 1 (polynomial) -c 10 (num classes) 
     for i, degree in enumerate(degree_list):
         for j, gamma in enumerate(gamma_list):
             for k, coef in enumerate(coef_list):
                 print(f'[degree = {degree}, coef = {coef},gamma = {gamma}]\n')
-                param = '-s 0 -t 1 -c 10 -g {} -r {} -d {}'.format(gamma, coef, degree)
+                param = '-s 0 -t 1 -c {} -g {} -r {} -d {}'.format(c, gamma, coef, degree)
                 m = svm_train(Y_train, X_train, param)
                 p_label, p_acc, p_val = svm_predict(Y_test, X_test, m)
                 ACC, MSE, SCC = evaluations(Y_test, p_label)
@@ -112,6 +144,7 @@ def task2(X_train, Y_train, X_test, Y_test):
                 f_out.write(f'{polynomial_acc_map[i, j, k]} ')
             f_out.write('\n')
     f_out.write('\n')
+    plot_res(polynomial_acc_map, 'polynomial', degree_list, gamma_list, coef_list, c)
 
     # for RBF exp(-gamma*|u-v|^2)
     gamma_list = [gamma_default / 100000, gamma_default / 10000, gamma_default / 1000, gamma_default / 100, gamma_default / 10, gamma_default, 
@@ -139,8 +172,7 @@ def task2(X_train, Y_train, X_test, Y_test):
     f_out.write('\n')
     
     # plot result to heatmap
-    plot_res(polynomial_acc_map, 'polynomial', degree_list, gamma_list, coef_list)
-    plot_res(RBF_acc_map, 'RBF', gamma_list, c_list, None)
+    plot_res(RBF_acc_map, 'RBF', gamma_list, c_list, None, c)
 
     print('process completed.')
 
@@ -166,7 +198,7 @@ def kernelize(X_train, X_test, func, gamma):
 	15  1:1     3:1
 
 	If the linear kernel is used, we have the following new
-	training/testing sets:
+	training/testing sets:8
 
 	15  0:1 1:4 2:6  3:1
 	45  0:2 1:6 2:18 3:0
@@ -221,24 +253,27 @@ def task3(X_train, Y_train, X_test, Y_test):
             ACC, MSE, SCC = evaluations(Y_test, p_label)
             f_out.write(f'[kernel : {func}, gamma : {gamma}, ACC = {ACC}, MSE = {MSE}, SCC = {SCC}]\n')
             acc_map[i, j] = np.round(100 * ACC) / 100
-    
 
-    plt.figure(figsize=(12, 5))
+    fig, ax = plt.subplots()
+    fig.set_figheight(8)
+    fig.set_figwidth(15)
 
-    x_bar = range(len(acc_map[0]))
-    plt.subplot(131)
-    plt.title('linear (accuracy in %)')
-    plt.bar(x_bar, acc_map[0])
-    
-    x_bar = range(len(acc_map[1]))
-    plt.subplot(132)
-    plt.title('RBF (accuracy in %)')
-    plt.bar(x_bar, acc_map[1])
+    x_axis = np.arange(acc_map.shape[1])
+    plt.title('Task2.2 result (accuracy in %)')
+    plt.xticks(x_axis, gamma_list)
+    plt.setp(ax.get_xticklabels(), rotation=45, ha="right", rotation_mode="anchor")
 
-    x_bar = range(len(acc_map[2]))
-    plt.subplot(133)
-    plt.title('linear + RBF (accuracy in %)')
-    plt.bar(x_bar, acc_map[2])
+    bar_linear          = plt.bar(x_axis - 0.25, acc_map[0], 0.25, label = 'linear')
+    bar_RBF             = plt.bar(x_axis - 0., acc_map[1], 0.25, label = 'RBF')
+    bar_linear_plus_RBF = plt.bar(x_axis + 0.25, acc_map[2], 0.25, label = 'linear+RBF')
+    for rect in bar_linear + bar_RBF + bar_linear_plus_RBF:
+        height = rect.get_height()
+        plt.text(rect.get_x() + rect.get_width() / 2.0, height, f'{height:.1f}', ha='center', va='bottom', fontsize='x-small')
+
+    plt.xlabel('gamma')
+    plt.ylim(0, 120)
+    plt.ylabel('acc')
+    plt.legend()
 
     plt.savefig('task2.3_linear+RBF.png')
     plt.show()
