@@ -10,7 +10,7 @@ from utils import get_flattened_imloc, get_flattened_imrbg, get_gram_matrix, get
 
 MAX_K = 10
 
-def initalize_clusters(data, k, init_type):
+def init_clusters(data, k, init_type):
     '''
     @param data: ndarray with shape (n, dim), input data or input feature
     @param k: int, number of clusters for kmeans initialization
@@ -22,9 +22,9 @@ def initalize_clusters(data, k, init_type):
 
     centers = np.zeros((k, data_dim))
     if init_type == 'random':
-        init_clusters = np.array([np.random.randint(0, k) for i in range(data_size)])
+        clusters = np.array([np.random.randint(0, k) for i in range(data_size)])
         for j in range(k):
-            cond = np.where(init_clusters == j)
+            cond = np.where(clusters == j)
             centers[j] = np.mean(data[cond], axis=0)
 
     elif init_type == 'kmeans++':
@@ -57,7 +57,7 @@ def kmeans(data, k, init_type):
     # for computing the distance to each center
     dist_map = np.zeros((data_size, k))
     # initial centers
-    means = initalize_clusters(data, k, init_type)
+    means = init_clusters(data, k, init_type)
     # for comparing with new clustering
     cluster_old = -np.ones(data_size) # initialize as -1
     # for recording cluster result for each step 
@@ -279,8 +279,6 @@ def main(args):
     spectral_type = {1:'ratio-cut', 2:'normalized-cut'}[args.stype]
     init_type = {1:'random', 2:'kmeans++'}[args.itype]
 
-
-    palette = get_palette(k)
     for path in paths:
         print(f'[processing kernel K-mean of image {path}]')
 
@@ -308,7 +306,7 @@ def main(args):
             else :
                 raise Exception(f'clustering type error : {clustering_type}')
             
-            visualize_clusters(save_path, cluster_frames, img_resize.shape, palette)
+            visualize_clusters(save_path, cluster_frames, img_resize.shape)
         
 
 if __name__=="__main__":

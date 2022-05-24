@@ -20,12 +20,18 @@ def get_flattened_imrbg(img):
     return np.reshape(img, (img.shape[0] * img.shape[1], img.shape[2]))
 
 def get_gram_matrix(img_c, img_s, gamma_s, gamma_c):
-
+    '''
+    @param img_c: ndarray, the flattened RGB image
+    @param img_s: ndarray, the flattened coordinate matrix of the RGB image
+    @param gamma_s: float, for computing the spacial similarity kernel of image data
+    @param gamma_c: float, for computing the color similarity kernel of image data
+    @return: ndarray, the gram matrix of the image
+    '''
     c_x = cdist(img_c, img_c) ** 2
     s_x = cdist(img_s, img_s) ** 2
 
     # gram matrix
-    k = np.exp(-gamma_s * s_x) + np.exp(-gamma_c * c_x)
+    k = np.exp(-gamma_s * s_x) * np.exp(-gamma_c * c_x)
 
     return k 
 
@@ -47,22 +53,23 @@ def get_palette(k):
 
 def visualize_eigenspace(final_cluster, T, title, save_path):
 
-        cls0ind = np.where(final_cluster == 0)
-        cls1ind = np.where(final_cluster == 1)
-        cls2ind = np.where(final_cluster == 2)
+    cls0ind = np.where(final_cluster == 0)
+    cls1ind = np.where(final_cluster == 1)
+    cls2ind = np.where(final_cluster == 2)
 
-        # Creating figure
-        fig = plt.figure(figsize = (10, 10))
-        ax = plt.axes(projection ="3d")
-        ax.set_title(title)
-        ax.scatter3D(T[cls0ind, 0], T[cls0ind, 1], T[cls0ind, 2], color='r', label='cls 0')
-        ax.scatter3D(T[cls1ind, 0], T[cls1ind, 1], T[cls1ind, 2], color='g', label='cls 1')
-        ax.scatter3D(T[cls2ind, 0], T[cls2ind, 1], T[cls2ind, 2], color='b', label='cls 2')
-        ax.set_xlabel('x')
-        ax.set_ylabel('y')
-        ax.set_zlabel('z')
+    # Creating figure
+    fig = plt.figure(figsize = (10, 10))
+    ax = plt.axes(projection ="3d")
+    ax.set_title(title)
+    ax.scatter3D(T[cls0ind, 0], T[cls0ind, 1], T[cls0ind, 2], color='r', label='cls 0')
+    ax.scatter3D(T[cls1ind, 0], T[cls1ind, 1], T[cls1ind, 2], color='g', label='cls 1')
+    ax.scatter3D(T[cls2ind, 0], T[cls2ind, 1], T[cls2ind, 2], color='b', label='cls 2')
+    ax.set_xlabel('x')
+    ax.set_ylabel('y')
+    ax.set_zlabel('z')
 
-        plt.savefig(save_path)
+    plt.savefig(save_path)
+    print(f'{save_path} saved')
 
 def visualize_clusters(save_path, clusters, shape):
     assert len(shape) == 3, f'invalid shape size: {shape}'
@@ -74,3 +81,4 @@ def visualize_clusters(save_path, clusters, shape):
         gif_frames.append(gif_frame)
 
     imageio.mimsave(save_path, gif_frames, fps=5)
+    print(f'{save_path} saved')
