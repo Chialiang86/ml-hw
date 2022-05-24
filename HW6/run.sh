@@ -12,9 +12,9 @@ if [ $# -eq 1 ]; then
         gamma_s=0.0001
         k=3
 
-        python clustering.py --ctype 1 --stype 1 --itype 1 --gamma_c $gamma_c --gamma_s $gamma_s --k $k 
-        # python clustering.py --ctype 2 --stype 1 --itype 2 --gamma_c $gamma_c --gamma_s $gamma_s --k $k 
-        # python clustering.py --ctype 2 --stype 2 --itype 2 --gamma_c $gamma_c --gamma_s $gamma_s --k $k 
+        python3 clustering.py --ctype 1 --stype 1 --itype 1 --gamma_c $gamma_c --gamma_s $gamma_s --k $k 
+        python3 clustering.py --ctype 2 --stype 1 --itype 2 --gamma_c $gamma_c --gamma_s $gamma_s --k $k 
+        python3 clustering.py --ctype 2 --stype 2 --itype 2 --gamma_c $gamma_c --gamma_s $gamma_s --k $k 
 
     elif [ $1 = 'all' ]; then
 
@@ -28,9 +28,9 @@ if [ $# -eq 1 ]; then
             for ((i=0;i<len;i++)); do
                 for t in ${types[@]}; do
 
-                    python clustering.py --ctype 1 --stype 1 --itype $t --gamma_c ${gamma_c[i]} --gamma_s ${gamma_s[i]} --k $k 
-                    python clustering.py --ctype 2 --stype 1 --itype $t --gamma_c ${gamma_c[i]} --gamma_s ${gamma_s[i]} --k $k
-                    python clustering.py --ctype 2 --stype 2 --itype $t --gamma_c ${gamma_c[i]} --gamma_s ${gamma_s[i]} --k $k
+                    python3 clustering.py --ctype 1 --stype 1 --itype $t --gamma_c ${gamma_c[i]} --gamma_s ${gamma_s[i]} --k $k 
+                    python3 clustering.py --ctype 2 --stype 1 --itype $t --gamma_c ${gamma_c[i]} --gamma_s ${gamma_s[i]} --k $k
+                    python3 clustering.py --ctype 2 --stype 2 --itype $t --gamma_c ${gamma_c[i]} --gamma_s ${gamma_s[i]} --k $k
                 
                 done
             done
@@ -44,7 +44,7 @@ if [ $# -eq 1 ]; then
         for s in ${gamma_s[@]}; do
             for c in ${gamma_c[@]}; do
 
-                time python clustering.py -seg -gs $s -gc $c
+                python3 clustering.py -seg -gs $s -gc $c
     
             done
         done

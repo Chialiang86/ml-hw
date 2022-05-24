@@ -83,7 +83,7 @@ def kmeans(data, k, init_type):
         # check if converge
         diff = np.sum(np.abs(cluster - cluster_old))
         cluster_old = cluster
-        print(f'[kmeans iteration : {iteration}, diff : {diff}]')
+        print(f'kmeans iteration : {iteration}, diff : {diff}')
 
         cluster_frames.append(cluster)
     
@@ -91,7 +91,6 @@ def kmeans(data, k, init_type):
 
 
 # def kernel_kmeans(gram_mat, k, init_type):
-    
 
     # # get the diagonal value of the gram matrix to form a new list 
     # gram_D = np.array([gram_mat[i, i] for i in range(data_size)])
