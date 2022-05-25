@@ -297,11 +297,11 @@ def main(args):
             if clustering_type == 'kkmeans':
                 # run kernel kmeans
                 cluster_frames = kmeans(gram_mat, k, init_type)
-                save_path = f'output/{prefix}/gif/{clustering_type}_{init_type}_{k}_{gamma_s}_{gamma_c}.gif'
+                save_path = f'output/{prefix}/gif/{clustering_type}_{init_type}_{k}_{gamma_s}_{gamma_c}_{len(cluster_frames)}.gif'
             elif clustering_type == 'spectral':
                 # run spectral clustering
                 cluster_frames = spectral_clustering(gram_mat, k, init_type, prefix, spectral_type, gamma_s, gamma_c)
-                save_path = f'output/{prefix}/gif/{spectral_type}_{init_type}_{k}_{gamma_s}_{gamma_c}.gif'
+                save_path = f'output/{prefix}/gif/{spectral_type}_{init_type}_{k}_{gamma_s}_{gamma_c}_{len(cluster_frames)}.gif'
             else :
                 raise Exception(f'clustering type error : {clustering_type}')
             

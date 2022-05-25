@@ -328,14 +328,14 @@ def save_eigenvec(W, prefix, gamma_s, gamma_c):
 ```
 
 ## Experiments & Discussion
-
+In the experiment section, I would visualize all the clustering results step by step into gif files. 
 ### Part 1
-
+This part I tried 4 different (`gamma_s`, `gamma_c`) pairs for the kernel function and ran 3 different clustering algorithms (kernel kmeans, spectral clustering using ratio cut and spectral clustering using normalized cut) to cluter 2 images respectively with `k` set to 2 and applying kmeans++ initialization method. The stop criteria in my implementation was the L1 distance between the current clustering result and the previous one smaller or equal than 10.
 
 - `k` = 2
 - `gamma_s` = 0.0001 
 - `gamma_c` = 0.0001 
-- `kmeans++`
+- initialization : `kmeans++`
 
 | original image | kernel kmeans | ratio-cut | normalized-cut |
 | --------- | -------- | -------- | -------- |
@@ -345,7 +345,7 @@ def save_eigenvec(W, prefix, gamma_s, gamma_c):
 - `k` = 2
 - `gamma_s` = 0.0001 
 - `gamma_c` = 0.001 
-- `kmeans++`
+- initialization : `kmeans++`
 
 | original image | kernel kmeans | ratio-cut | normalized-cut |
 | --------- | -------- | -------- | -------- |
@@ -355,7 +355,7 @@ def save_eigenvec(W, prefix, gamma_s, gamma_c):
 - `k` = 2
 - `gamma_s` = 0.001 
 - `gamma_c` = 0.0001 
-- `kmeans++`
+- initialization : `kmeans++`
 
 | original image | kernel kmeans | ratio-cut | normalized-cut |
 | --------- | -------- | -------- | -------- |
@@ -366,21 +366,24 @@ def save_eigenvec(W, prefix, gamma_s, gamma_c):
 - `k` = 2
 - `gamma_s` = 0.001 
 - `gamma_c` = 0.001 
-- `kmeans++`
+- initialization : `kmeans++`
 
 | original image | kernel kmeans | ratio-cut | normalized-cut |
 | --------- | -------- | -------- | -------- |
 | ![](https://i.imgur.com/nUUxBFl.png) | ![](https://i.imgur.com/8nIWP4i.gif) | ![](https://i.imgur.com/vDYn2Oq.gif) | ![](https://i.imgur.com/el1C1Bs.gif) |
 | ![](https://i.imgur.com/HucZ3yl.png) | ![](https://i.imgur.com/niOsB3K.gif) | ![](https://i.imgur.com/urzjUxR.gif) | ![](https://i.imgur.com/IjAfYtc.gif) |
 
+To my observation, most of the iterations in each algorithm were less than 10, which means these method would lead to the clustring result converge in a quite short time. Besides, I found that kernel kmeans would averagely take a little more iterations to converge than spectral clustering algorithm.
+
+Further more, we could discover that smaller `gamma_c`, `gamma_s` tended to make the clustering results more exquisitely, especially `(gamma_s, gamma_c) = (0.0001, 0.0001)`. Moreover, kernel parameter would make the value of the kernel function larger, and thus we could found that color parameter (`gamma_c`) may affect the result more because the one using `(gamma_s, gamma_c) = (0.001, 0.0001)` would converge faster than the one using `(gamma_s, gamma_c) = (0.0001, 0.001)`. 
 
 ### Part 2
-
+This part I would show the result that applied different `k` with the same kernel parameters pair`(gamma_s, gamma_c) = (0.0001, 0.0001)` and compare the three algorithms with kmeans++ initialization method. Why I chose this pair of kernel parameters was based on the discussion in Part1.
 
 - `k` = 2
 - `gamma_s` = 0.0001 
 - `gamma_c` = 0.0001 
-- `kmeans++`
+- initialization : `kmeans++`
 
 | original image | kernel kmeans | ratio-cut | normalized-cut |
 | --------- | -------- | -------- | -------- |
@@ -390,7 +393,7 @@ def save_eigenvec(W, prefix, gamma_s, gamma_c):
 - `k` = 3
 - `gamma_s` = 0.0001 
 - `gamma_c` = 0.0001 
-- `kmeans++`
+- initialization : `kmeans++`
 
 | original image | kernel kmeans | ratio-cut | normalized-cut |
 | --------- | -------- | -------- | -------- |
@@ -400,19 +403,25 @@ def save_eigenvec(W, prefix, gamma_s, gamma_c):
 - `k` = 4
 - `gamma_s` = 0.0001 
 - `gamma_c` = 0.0001 
-- `kmeans++`
+- initialization : `kmeans++`
 
 | original image | kernel kmeans | ratio-cut | normalized-cut |
 | --------- | -------- | -------- | -------- |
 | ![](https://i.imgur.com/nUUxBFl.png) | ![](https://i.imgur.com/qnwGAjx.gif) | ![](https://i.imgur.com/Es7SvVA.gif) | ![](https://i.imgur.com/Zj7vw9C.gif) |
 | ![](https://i.imgur.com/HucZ3yl.png) | ![](https://i.imgur.com/1g3FDvU.gif) | ![](https://i.imgur.com/gSUvHEj.gif) | ![](https://i.imgur.com/W43uouj.gif) |
 
-### Part 3
+According to the results shown above, I could not assert that which `k` was the best. Instead, I would say it depends. 
 
+In image1, `k=2, 3` seemed to segment the image more accurate than `k=4`, and `k=2` would be a more suitable choise in image2 becuase the results of the three algorithms were similar.
+
+In summary, the two images may be more suitable for smaller `k` (less than or equal to 3). According to the experiments, when larger `k` applied, the result would become noisy.
+
+
+### Part 3
+This section we would compare the results that applied different initialization methods. I tried two method, which was random assigned and kmeans++ method. I would set the cluster number `k` to be 3 and apply `(gamma_s, gamma_c) = (0.0001, 0.0001)` and compare three different algorithms.
 - `k` = 3
 - `gamma_s` = 0.0001 
 - `gamma_c` = 0.0001 
-- `random`
 
 | original image | kernel kmeans | ratio-cut | normalized-cut |
 | --------- | -------- | -------- | -------- |
@@ -421,11 +430,12 @@ def save_eigenvec(W, prefix, gamma_s, gamma_c):
 | ![](https://i.imgur.com/HucZ3yl.png) original| ![](https://i.imgur.com/d1f0G5l.gif) kmeans++_init| ![](https://i.imgur.com/dmb4hKS.gif) kmeans++_init| ![](https://i.imgur.com/l09CBaO.gif) kmeans++_init|
 || ![](https://i.imgur.com/85nStOi.gif) random_init| ![](https://i.imgur.com/jnJL85s.gif) random_init| ![](https://i.imgur.com/pRo4fMD.gif) random_init|
 
+Averagely, the iteration number of kmeans++ were less than random assigned method.
 
 
 
 ### Part 4
-
+This part we were going to plot the eigen space of the (normalized) graph Laplacian matrix and examine whether the data points within the same cluster do have the same coordinates in the eigenspace of graph Laplacian or not
 
 ![](https://i.imgur.com/2m7P2Wb.png)
 
@@ -435,5 +445,19 @@ def save_eigenvec(W, prefix, gamma_s, gamma_c):
 ![](https://i.imgur.com/OJh5Sn3.png)
 
 ![](https://i.imgur.com/agFbFH9.png)
+
+
+## Observations and Discussion
+
+### Different kernel kmeans implementation
+
+### Different eigenvectors 
+
+#### first k eigenvectors
+
+#### second to the k'th eigenvectors
+
+#### second to the (k+1)'th eigenvectors
+
 
 
