@@ -83,7 +83,7 @@ def kmeans(data, k, init_type):
         # check if converge
         diff = np.sum(np.abs(cluster - cluster_old))
         cluster_old = cluster
-        print(f'[kmeans iteration : {iteration}, diff : {diff}]')
+        print(f'kmeans iteration : {iteration}, diff : {diff}')
 
         cluster_frames.append(cluster)
     
@@ -91,7 +91,6 @@ def kmeans(data, k, init_type):
 
 
 # def kernel_kmeans(gram_mat, k, init_type):
-    
 
     # # get the diagonal value of the gram matrix to form a new list 
     # gram_D = np.array([gram_mat[i, i] for i in range(data_size)])
@@ -298,11 +297,11 @@ def main(args):
             if clustering_type == 'kkmeans':
                 # run kernel kmeans
                 cluster_frames = kmeans(gram_mat, k, init_type)
-                save_path = f'output/{prefix}/gif/{clustering_type}_{init_type}_{k}_{gamma_s}_{gamma_c}.gif'
+                save_path = f'output/{prefix}/gif/{clustering_type}_{init_type}_{k}_{gamma_s}_{gamma_c}_{len(cluster_frames)}.gif'
             elif clustering_type == 'spectral':
                 # run spectral clustering
                 cluster_frames = spectral_clustering(gram_mat, k, init_type, prefix, spectral_type, gamma_s, gamma_c)
-                save_path = f'output/{prefix}/gif/{spectral_type}_{init_type}_{k}_{gamma_s}_{gamma_c}.gif'
+                save_path = f'output/{prefix}/gif/{spectral_type}_{init_type}_{k}_{gamma_s}_{gamma_c}_{len(cluster_frames)}.gif'
             else :
                 raise Exception(f'clustering type error : {clustering_type}')
             
